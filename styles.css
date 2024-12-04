@@ -808,7 +808,8 @@ h1 {
     .menu-button {
         display: block;
         padding-right: 20px;
-        padding-bottom: 10px;
+        padding-bottom: 20px;
+        padding-left: 20px;
     }
 
 
