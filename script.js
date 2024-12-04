@@ -94,3 +94,33 @@ function hideSidebar(){
     const sidebar = document.querySelector('.sidebar')
     sidebar.style.display = 'none'
 }
+
+
+
+
+// Get the popup box
+var popupBox = document.getElementById("popupBox");
+
+// Get the link that opens the popup
+var popupLink = document.getElementById("popupLink");
+
+// Get the <span> element that closes the popup
+var closeBtn = document.getElementsByClassName("close")[0];
+
+// When the user clicks on the link, open the popup
+popupLink.onclick = function(event) {
+    event.preventDefault();
+    popupBox.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the popup
+closeBtn.onclick = function() {
+    popupBox.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the popup, close it
+window.onclick = function(event) {
+    if (event.target == popupBox) {
+        popupBox.style.display = "none";
+    }
+}
