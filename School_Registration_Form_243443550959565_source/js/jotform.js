@@ -803,6 +803,9 @@ var JotForm = {
                 helperAgentProps = {...helperAgentProps, background: agentHeaderBackgroundColor, avatarURL:avatarIconLink, agentRenderURL, ...rest}
             }
 
+            if (window.location.href.includes('namedGreetingsFromInput')) {
+              nameInputListenerForAssistantTooltip();
+            };
             window.agentInitialized = true;
             const isCardformWithWelcome = window.FORM_MODE === 'cardform' && document.querySelector('.welcomeMode') !== null;
             const isPDFFormWithWelcome = !!JotForm.importedPDF && document.querySelector('html').getAttribute('data-mode') === 'welcomeMode';
@@ -812,13 +815,15 @@ var JotForm = {
                 const startButton = document.querySelector(startButtonQuery);
                 if (startButton) {
                     startButton.addEventListener('click', () => {
-                        window.AgentInitializer.init(helperAgentProps);
+                        const agentMethods = window.AgentInitializer.init(helperAgentProps);
+                        window.embeddedAgentMethods = agentMethods;
                     });
                 }
             }
             else {
-                window.AgentInitializer.init(helperAgentProps);
-            }
+                const agentMethods = window.AgentInitializer.init(helperAgentProps);
+                window.embeddedAgentMethods = agentMethods;
+              }
         }
     },
 
@@ -16583,7 +16588,9 @@ var JotForm = {
 
         JotForm.nextPage = false;
         input = $(input);
-
+        if (window.AgentInitializer && window.agentInitialized && window.embeddedAgentMethods && window.location.href.includes('tooltipError=1')) {
+            window.embeddedAgentMethods.setTooltip('You need help with that?', { withPulse: true, timeout: 5000 });
+        }
         if (input.errored) {
             return false;
         }
@@ -22058,4 +22065,40 @@ function putChatIDInForm(agentOrigin) {
         console.error(e);
       }
   });
+}
+
+function nameInputListenerForAssistantTooltip() {
+  try {
+    const nameField = document.querySelector('li[data-type="control_fullname"]');
+    if (!nameField) return;
+
+    const questionID = nameField.getAttribute('id').replace('id_', '');
+    const firstNameField = nameField.querySelector(`#first_${questionID}`);
+    let timeoutID;
+    let isTriggered = false;
+
+    const focusHandler = () => {
+        clearTimeout(timeoutID)
+    }
+
+    const blurHandler = (event) => {
+      if (isTriggered) {
+        firstNameField.removeEventListener('blur', blurHandler);
+        firstNameField.removeEventListener('focus', focusHandler);
+        return;
+      }
+      clearTimeout(timeoutID);
+      timeoutID = setTimeout(() => {
+        const firstName = event.target.value;
+        isTriggered = true;
+        window.embeddedAgentMethods.setTooltip(`Hi ${firstName}! Got any questions? Ask AI`);
+      }, 5000);
+    }
+
+    firstNameField.addEventListener('blur', blurHandler);
+    firstNameField.addEventListener('focus', focusHandler);
+  }
+  catch (e)  {
+    console.log(e);
+  }
 }
